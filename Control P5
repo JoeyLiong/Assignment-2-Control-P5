@@ -1,3 +1,42 @@
+import controlP5.*;
+ ControlP5 cp5;
+ int v1;
+ 
+int myColorBackground = color(0,0,0);
+public float numberboxValue = 100; 
+
+CheckBox checkbox;
+//int myColorBackground;
+ 
+ControlWindow controlWindow;
+Canvas cc;
+
+Chart myChart;
+
+class MyCanvas extends Canvas {
+
+  int y;
+  int mx = 0;
+  int my = 0;
+  public void setup(PGraphics pg) {
+    y = 170;
+  }  
+
+  public void update(PApplet p) {
+    mx = p.mouseX;
+    my = p.mouseY;
+  }
+
+  public void draw(PGraphics pg) {
+    // renders a square with randomly changing colors
+    // make changes here.
+    pg.fill(100);
+    pg.rect(mx-10, y-10, 120, 25);
+    pg.fill(255);
+    pg.text("HELLO HAVE A NICE DAY", mx,y);
+  }
+}
+
 float x;
 float y;
 float z;
@@ -10,12 +49,78 @@ float easing = 0.05;
 void setup() {
 size(200,200);
 noStroke();
+cp5 = new ControlP5(this);
+      cp5.addSlider("v1")
+         .setPosition(20, 20)
+         .setSize(150, 20)
+         .setRange(100, 300)
+         .setValue(250)
+         .setColorCaptionLabel(color(20,20,20));
+         
+  frameRate(30);
+  cp5 = new ControlP5(this);
+  
+  cc = new MyCanvas();
+  cc.pre(); // use cc.post(); to draw on top of existing controllers.
+  cp5.addCanvas(cc);
+  
+  cp5 = new ControlP5(this);
+  myChart = cp5.addChart("dataflow")
+               .setPosition(20, 42)
+               .setSize(100, 10)
+               .setRange(-20, 20)
+               .setView(Chart.LINE) // use Chart.LINE, Chart.PIE, Chart.AREA, Chart.BAR_CENTERED
+               .setStrokeWeight(1.5)
+               .setColorCaptionLabel(color(48,253,247))
+               ;
 
+  myChart.addDataSet("incoming");
+  myChart.setData("incoming", new float[100]);
+  
+  
+  cp5.addNumberbox("numberboxValue")
+     .setPosition(25,130)
+     .setSize(70,10)
+     .setRange(0,200)
+     .setMultiplier(0.1) // set the sensitifity of the numberbox
+     .setDirection(Controller.HORIZONTAL) // change the control direction to left/right
+     .setValue(100)
+     ;  
+     
+     smooth();
+  cp5 = new ControlP5(this);
+  checkbox = cp5.addCheckBox("checkBox")
+                .setPosition(100, 200)
+                .setSize(40, 40)
+                .setItemsPerRow(3)
+                .setSpacingColumn(30)
+                .setSpacingRow(20)
+                .addItem("0", 0)
+                .addItem("50", 50)
+                .addItem("100", 100)
+                .addItem("150", 150)
+                .addItem("200", 200)
+                .addItem("255", 255)
+                ;
 }
 
 void draw() {
 background(219,255,254);
 fill(252,224,201);
+
+ background(170);
+  pushMatrix();
+  translate(width/2 + 200, height/2);
+  stroke(255);
+  strokeWeight(2);
+  fill(myColorBackground);
+  ellipse(0,0,200,200);
+  popMatrix();
+
+fill(numberboxValue);
+rect(0,0,width,100);
+
+myChart.push("incoming", (sin(frameCount*0.1)*10));
 
 
 //Coded Keys
@@ -119,4 +224,50 @@ ellipse(130,90,30,30);
 
 void keyPressed() {
   background(155,179,240) ;
+   if (key==' ') {
+    checkbox.deactivateAll();
+  } 
+  else {
+    for (int i=0;i<6;i++) {
+      // check if key 0-5 have been pressed and toggle
+      // the checkbox item accordingly.
+      if (keyCode==(48 + i)) { 
+        // the index of checkbox items start at 0
+        checkbox.toggle(i);
+        println("toggle "+checkbox.getItem(i).getName());
+        // also see 
+        // checkbox.activate(index);
+        // checkbox.deactivate(index);
+      }
+    }
+  }
+}
+
+
+void numberbox(int theColor) {
+  myColorBackground = color(theColor);
+  println("a numberbox event. setting background to "+theColor);
+}
+
+void controlEvent(ControlEvent theEvent) {
+  if (theEvent.isFrom(checkbox)) {
+    myColorBackground = 0;
+    print("got an event from "+checkbox.getName()+"\t\n");
+    // checkbox uses arrayValue to store the state of 
+    // individual checkbox-items. usage:
+    println(checkbox.getArrayValue());
+    int col = 0;
+    for (int i=0;i<checkbox.getArrayValue().length;i++) {
+      int n = (int)checkbox.getArrayValue()[i];
+      print(n);
+      if(n==1) {
+        myColorBackground += checkbox.getItem(i).internalValue();
+      }
+    }
+    println();    
+  }
+}
+
+void checkBox(float[] a) {
+  println(a);
 }
